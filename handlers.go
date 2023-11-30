@@ -77,7 +77,7 @@ func localSummaryHandler(c *gin.Context) {
 	//})
 
 }
-func aiSummaryHandler(c *gin.Context) {
+func biliSummaryHandler(c *gin.Context) {
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		log.Fatalln(err)

@@ -70,7 +70,7 @@ func biliBiliSummary() {
 
 	router := gin.Default()
 	// 定义一个路由处理函数
-	router.POST("/ai", aiSummaryHandler)
+	router.POST("/ai", biliSummaryHandler)
 
 	if err := router.Run(":9876"); err != nil {
 		log.Fatalln(err)
