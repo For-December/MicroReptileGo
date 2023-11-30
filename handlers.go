@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tebeka/selenium"
 	"io"
@@ -10,6 +11,28 @@ import (
 )
 
 func localSummaryHandler(c *gin.Context) {
+
+	// 启动 Chrome 浏览器
+	caps := selenium.Capabilities{"browserName": "chrome"}
+	driver, _ = selenium.NewRemote(caps, "")
+	err := driver.SetImplicitWaitTimeout(30 * time.Second)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	defer func(driver selenium.WebDriver) {
+		log.Println("浏览器推出了？")
+		err := driver.Quit()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(driver)
+
+	// 导航到网页
+	if err := driver.Get("http://localhost:3000/"); err != nil {
+		fmt.Println("打开网页失败:", err)
+		return
+	}
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		log.Fatalln(err)
