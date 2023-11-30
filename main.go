@@ -25,13 +25,6 @@ func localSummary() {
 		log.Fatalln(err)
 		return
 	}
-
-	// 导航到网页
-	if err := driver.Get("https://www.bilibili.com"); err != nil {
-		fmt.Println("打开网页失败:", err)
-		return
-	}
-
 	defer func(driver selenium.WebDriver) {
 		log.Println("浏览器推出了？")
 		err := driver.Quit()
@@ -39,6 +32,12 @@ func localSummary() {
 			log.Fatalln(err)
 		}
 	}(driver)
+
+	// 导航到网页
+	if err := driver.Get("http://localhost:3000/"); err != nil {
+		fmt.Println("打开网页失败:", err)
+		return
+	}
 
 	router := gin.Default()
 	// 定义一个路由处理函数
