@@ -1,6 +1,7 @@
 package main
 
 import (
+	"MicroReptileGo/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tebeka/selenium"
@@ -101,6 +102,24 @@ func localSummaryHandler(c *gin.Context) {
 
 }
 func biliSummaryHandler(c *gin.Context) {
+
+	// 启动 Chrome 浏览器
+	caps := selenium.Capabilities{"browserName": "chrome"}
+	driver, _ = selenium.NewRemote(caps, "")
+	err := driver.SetImplicitWaitTimeout(30 * time.Second)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+
+	defer func(driver selenium.WebDriver) {
+		err := driver.Quit()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(driver)
+	utils.LoginBiliBili(driver)
+
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		log.Fatalln(err)
@@ -133,7 +152,13 @@ func biliSummaryHandler(c *gin.Context) {
 	text, err := aiSummary.Text()
 	log.Println(err)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": text,
-	})
+	num, err := c.Writer.Write([]byte(text))
+	if err != nil {
+		log.Fatalln(num)
+		return
+	}
+
+	//c.JSON(http.StatusOK, gin.H{
+	//	"message": text,
+	//})
 }
