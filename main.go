@@ -10,7 +10,7 @@ var driver selenium.WebDriver
 
 func main() {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Ltime)
-	localSummary()
+	biliBiliSummary()
 }
 
 func localSummary() {

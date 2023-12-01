@@ -152,6 +152,37 @@ func biliSummaryHandler(c *gin.Context) {
 	text, err := aiSummary.Text()
 	log.Println(err)
 
+	text += "\n\n"
+	if outline, err := driver.FindElement(
+		selenium.ByCSSSelector,
+		".ai-summary-popup-body-outline"); err == nil {
+		sections, err := outline.FindElements(selenium.ByCSSSelector, ".section")
+		if err != nil {
+			log.Println(err)
+		} else {
+			for _, section := range sections {
+				titleElement, err := section.FindElement(selenium.ByCSSSelector, ".section-title")
+				if err != nil {
+					log.Println(err)
+				} else {
+					title, _ := titleElement.Text()
+					text += title + "\n"
+				}
+				contentElements, err := section.FindElements(selenium.ByCSSSelector, ".content")
+				if err != nil {
+					log.Println(err)
+				} else {
+					for _, contentElement := range contentElements {
+						content, _ := contentElement.Text()
+						text += content + "\n"
+					}
+				}
+				text += "\n"
+
+			}
+		}
+	}
+
 	num, err := c.Writer.Write([]byte(text))
 	if err != nil {
 		log.Fatalln(num)
