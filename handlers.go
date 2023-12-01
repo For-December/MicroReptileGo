@@ -7,10 +7,56 @@ import (
 	"github.com/tebeka/selenium"
 	"io"
 	"log"
-	"net/http"
 	"time"
 )
 
+func webScreenHandler(c *gin.Context) {
+	// 启动 Chrome 浏览器
+	caps := selenium.Capabilities{"browserName": "chrome"}
+	driver, _ = selenium.NewRemote(caps, "")
+	err := driver.SetImplicitWaitTimeout(30 * time.Second)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+	defer func(driver selenium.WebDriver) {
+		log.Println("浏览器推出了？")
+		err := driver.Quit()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}(driver)
+
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	url := string(body)
+	println(url)
+
+	// 导航到网页
+	if err := driver.Get(url); err != nil {
+		fmt.Println("打开网页失败:", err)
+		return
+	}
+
+	// 最大化浏览器窗口
+	if err := driver.MaximizeWindow(""); err != nil {
+		log.Fatal("无法最大化窗口：", err)
+	}
+	time.Sleep(7 * time.Second)
+	screenshot, err := driver.Screenshot()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	num, err := c.Writer.Write(screenshot)
+	if err != nil {
+		log.Println(num)
+		return
+	}
+
+}
 func localSummaryHandler(c *gin.Context) {
 
 	// 启动 Chrome 浏览器
@@ -106,7 +152,7 @@ func biliSummaryHandler(c *gin.Context) {
 	// 启动 Chrome 浏览器
 	caps := selenium.Capabilities{"browserName": "chrome"}
 	driver, _ = selenium.NewRemote(caps, "")
-	err := driver.SetImplicitWaitTimeout(30 * time.Second)
+	err := driver.SetImplicitWaitTimeout(5 * time.Second)
 	if err != nil {
 		log.Fatalln(err)
 		return
@@ -141,18 +187,15 @@ func biliSummaryHandler(c *gin.Context) {
 	}
 
 	time.Sleep(5 * time.Second)
+	summary := ""
 	aiSummary, err := driver.FindElement(selenium.ByCSSSelector, ".ai-summary-popup-body-abstracts")
-	if err != nil {
+	if err == nil {
+		text, _ := aiSummary.Text()
+		summary += text + "\n\n"
+	} else {
 		log.Println(err)
-		c.JSON(http.StatusOK, gin.H{
-			"message": "抱歉，该视频暂时不能ai总结捏~",
-		})
 	}
 
-	text, err := aiSummary.Text()
-	log.Println(err)
-
-	text += "\n\n"
 	if outline, err := driver.FindElement(
 		selenium.ByCSSSelector,
 		".ai-summary-popup-body-outline"); err == nil {
@@ -166,7 +209,7 @@ func biliSummaryHandler(c *gin.Context) {
 					log.Println(err)
 				} else {
 					title, _ := titleElement.Text()
-					text += title + "\n"
+					summary += title + "\n"
 				}
 				contentElements, err := section.FindElements(selenium.ByCSSSelector, ".content")
 				if err != nil {
@@ -174,16 +217,25 @@ func biliSummaryHandler(c *gin.Context) {
 				} else {
 					for _, contentElement := range contentElements {
 						content, _ := contentElement.Text()
-						text += content + "\n"
+						summary += content + "\n"
 					}
 				}
-				text += "\n"
+				summary += "\n"
 
 			}
 		}
 	}
 
-	num, err := c.Writer.Write([]byte(text))
+	if summary == "" {
+
+		_, err := c.Writer.Write([]byte("该视频不能总结捏~"))
+		if err != nil {
+			log.Fatalln(err)
+		}
+		return
+	}
+
+	num, err := c.Writer.Write([]byte(summary))
 	if err != nil {
 		log.Fatalln(num)
 		return
