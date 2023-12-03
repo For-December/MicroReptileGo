@@ -211,12 +211,22 @@ func biliSummaryHandler(c *gin.Context) {
 					title, _ := titleElement.Text()
 					summary += title + "\n"
 				}
-				contentElements, err := section.FindElements(selenium.ByCSSSelector, ".content")
+				contentElements, err := section.FindElements(selenium.ByCSSSelector, ".bullet")
 				if err != nil {
 					log.Println(err)
 				} else {
 					for _, contentElement := range contentElements {
-						content, _ := contentElement.Text()
+						timeTagElem, err := contentElement.FindElement(selenium.ByCSSSelector, ".timestamp-inner")
+						if err != nil {
+							log.Println(err)
+						}
+						contentElem, err := contentElement.FindElement(selenium.ByCSSSelector, ".content")
+						if err != nil {
+							log.Println(err)
+						}
+						timeTag, _ := timeTagElem.Text()
+						content, _ := contentElem.Text()
+						summary += timeTag + "  "
 						summary += content + "\n"
 					}
 				}
