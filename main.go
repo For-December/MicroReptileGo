@@ -16,19 +16,21 @@ func main() {
 
 	// 启动 selenium server
 	// 获取当前目录
-	currentDir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("无法获取当前目录：", err)
-		return
-	}
-	batFilePath := currentDir + "\\resources\\run.bat"
-	cmd := exec.Command("cmd.exe", "/C", batFilePath)
-	// 也可以直接相对路径".\\resources\\run.bat"
-	err = cmd.Start()
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
+	go func() {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			fmt.Println("无法获取当前目录：", err)
+			return
+		}
+		batFilePath := currentDir + "\\resources\\run.bat"
+		cmd := exec.Command("cmd.exe", "/C", batFilePath)
+		// 也可以直接相对路径".\\resources\\run.bat"
+		err = cmd.Start()
+		if err != nil {
+			log.Fatalln(err)
+			return
+		}
+	}()
 	router := gin.Default()
 	biliBiliSummary(router)
 	webScreen(router)
